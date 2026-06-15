@@ -1,0 +1,63 @@
+# Core Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-dotenv==1.0.1
+
+# Database
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.9
+alembic==1.13.2
+
+# Data Validation
+pydantic==2.9.0
+pydantic-settings==2.5.2
+
+# AI/ML Components
+google-generativeai==0.8.0
+sentence-transformers==3.1.0
+numpy==1.26.4
+scikit-learn==1.5.2
+tensorflow==2.14.0  # For image analysis (optional)
+
+# Utilities
+python-multipart==0.0.12
+pillow==10.4.0
+httpx==0.27.0
+requests==2.31.0
+
+# Authentication & Security
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+bcrypt==4.1.3
+
+# Caching
+redis==5.0.1
+aioredis==2.0.1
+
+# Async & Concurrency
+celery==5.3.4
+aiofiles==23.2.1
+
+# Translation & NLP
+google-cloud-translate==3.14.0
+googletrans==4.0.0rc1
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.2
+httpx==0.27.0
+
+# Code Quality
+black==24.1.1
+flake8==7.0.0
+mypy==1.8.0
+
+# Logging & Monitoring
+python-json-logger==2.0.7
+
+# Geospatial
+geopy==2.4.0
+haversine==2.7.0
+
+# API Documentation
+python-multipart==0.0.12

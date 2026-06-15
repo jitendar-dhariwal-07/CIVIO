@@ -1,0 +1,173 @@
+version: '3.8'
+
+# CIVIO Docker Compose Configuration
+# Start all services: docker-compose up
+# Stop all services: docker-compose down
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: civio_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: civio_db
+      POSTGRES_USER: civio_user
+      POSTGRES_PASSWORD: civio_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civio_user -d civio_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - civio_network
+    labels:
+      - "com.civio.description=PostgreSQL Database"
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: civio_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - civio_network
+    labels:
+      - "com.civio.description=Redis Cache"
+
+  # Backend FastAPI
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: civio_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://civio_user:civio_password@postgres:5432/civio_db
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Application
+      ENVIRONMENT: development
+      DEBUG: "true"
+      SECRET_KEY: your_secret_key_change_in_production
+      
+      # CORS
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8000"
+      
+      # Server
+      HOST: 0.0.0.0
+      PORT: 8000
+      
+      # Optional API Keys (uncomment and fill)
+      # GOOGLE_TRANSLATE_API_KEY: ""
+      # GOOGLE_MAPS_API_KEY: ""
+      # AWS_ACCESS_KEY_ID: ""
+      # AWS_SECRET_ACCESS_KEY: ""
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    volumes:
+      - ./backend:/app/backend
+      - /app/backend/__pycache__
+      - /app/backend/.pytest_cache
+    
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    
+    networks:
+      - civio_network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "com.civio.description=FastAPI Backend"
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: civio_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # API
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      
+      # Language
+      NEXT_PUBLIC_DEFAULT_LANGUAGE: en
+      
+      # Maps (optional)
+      # NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ""
+      
+      # Environment
+      NEXT_PUBLIC_ENVIRONMENT: development
+    
+    depends_on:
+      - backend
+    
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+      - /app/frontend/.next
+    
+    command: npm run dev
+    
+    networks:
+      - civio_network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    labels:
+      - "com.civio.description=Next.js Frontend"
+
+networks:
+  civio_network:
+    driver: bridge
+    name: civio_network
+
+volumes:
+  postgres_data:
+    driver: local
+    name: civio_postgres_data
+  
+  redis_data:
+    driver: local
+    name: civio_redis_data
