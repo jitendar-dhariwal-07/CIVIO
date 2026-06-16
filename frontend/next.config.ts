@@ -1,12 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
-  basePath: "/CIVIO",
+ 
   reactStrictMode: true,
   images: {
     domains: ["localhost", "api.citizenai.in", "tile.openstreetmap.org"],
-    unoptimized: true,
+    unoptimized: false,
   },
   transpilePackages: ["lucide-react"],
 };
