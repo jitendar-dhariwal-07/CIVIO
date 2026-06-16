@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     domains: ["localhost", "api.citizenai.in", "tile.openstreetmap.org"],
-    unoptimized: true,   // changed to true — required for static export
+    unoptimized: true,
   },
   transpilePackages: ["lucide-react"],
 };
