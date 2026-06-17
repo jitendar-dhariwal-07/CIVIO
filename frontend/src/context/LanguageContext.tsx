@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import type { Language } from "../lib/types";;
-import { getTranslation } from "@/lib/translations";
+import type { Language } from "@/src/types";;
+import { getTranslation } from "@/src/translations";
 
 interface LanguageContextType {
   language: Language;
